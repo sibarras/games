@@ -1,9 +1,7 @@
 from random import randint
 from time import sleep
 import keyboard # deseo eliminar esta libreria en un futuro
-import curses # para capturar el teclado en una pantalla interactiva del shell
-# import tkinter as tk  # Para el futuro debo hacerlo fuera de la consola
-# tkinter tambien puede ayudarte a capturar el teclado de python
+from raspberrypi import PinsArray
 
 
 class Snake:
