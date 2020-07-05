@@ -1,7 +1,7 @@
 from random import randint
 from time import sleep
 import keyboard # deseo eliminar esta libreria en un futuro
-# from raspberrypi import PinsArray
+from raspberrypi import RPiSimulator
 
 
 class Snake:

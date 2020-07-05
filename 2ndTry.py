@@ -2,11 +2,16 @@
 class You:
     J = 'called from class'
 
-    def __init__(self, nums=1):
-        J = You.J
-        print(J)
+    @classmethod
+    def __init__(cls, nums=1):
+        print(cls.J)
+        cls.J += ' plus one'
 
-j = You(You)
+You()
+You()
+You()
+You()
+
 
 lst = [1,2,3,'a', 'km']
 

@@ -33,7 +33,8 @@
 #         for pos in range(self.dimensions):
 #             self.GPIO.output(self.pos_pin[pos], False)
 #             self.GPIO.output(self.neg_pin[pos], False)
-from time import sleep
+
+#from time import sleep
 
 class RPiSimulator:
     pos_pin = [24, 22, 18, 16, 23, 21, 19, 15]
@@ -47,50 +48,54 @@ class RPiSimulator:
         
         # this is the decoder for the rpi representation of the code
         class GPIO:
-            def __init__(self, pos_pin=list, neg_pin=list, dim=self.dimensions):
-                self.pos_pin = RPiSimulator.pos_pin
-                self.neg_pin = RPiSimulator.neg_pin
-                self.ledMtx = [["[ ]" for i in range(dim)] for j in range(dim)]
-                self.energized = [["[ ]" for i in range(dim)] for j in range(dim)]
 
-            def output(self, outputNumber=int, state=bool):
-                if outputNumber in self.pos_pin: # x axis
-                    currentPin = self.pos_pin.index(outputNumber)
+            @classmethod
+            def __init__(cls, pos_pin=self.pos_pin, neg_pin=self.neg_pin, dim=self.dimensions):
+                cls.pos_pin = RPiSimulator.pos_pin
+                cls.neg_pin = RPiSimulator.neg_pin
+                cls.ledMtx = [["[ ]" for i in range(dim)] for j in range(dim)]
+                cls.energized = [["[ ]" for i in range(dim)] for j in range(dim)]
+
+            @classmethod
+            def output(cls, outputNumber=int, state=bool):
+                if outputNumber in cls.pos_pin: # x axis
+                    currentPin = cls.pos_pin.index(outputNumber)
                     action = 'OneColPos'
-                elif outputNumber in self.neg_pin: # y axis
-                    currentPin = self.neg_pin.index(outputNumber)
+                elif outputNumber in cls.neg_pin: # y axis
+                    currentPin = cls.neg_pin.index(outputNumber)
                     action = 'OneRowNeg'
 
                 if action == 'OneRowNeg':
-                    for i in range(len(self.ledMtx)):
+                    for i in range(len(cls.ledMtx)):
                         if state == False:
-                            self.ledMtx[currentPin][i] = "[O]"
+                            cls.ledMtx[currentPin][i] = "[O]"
                         elif state == True:
-                            self.ledMtx[currentPin][i] = "[ ]"
+                            cls.ledMtx[currentPin][i] = "[ ]"
                 if action == 'OneColPos':
-                    for i in range(len(self.ledMtx)):
+                    for i in range(len(cls.ledMtx)):
                         if state == True:
-                            self.ledMtx[i][currentPin] = "[O]"
+                            cls.ledMtx[i][currentPin] = "[O]"
                         elif state == False:
-                            self.ledMtx[i][currentPin] = "[ ]"
-                self.display()
+                            cls.ledMtx[i][currentPin] = "[ ]"
+                cls.display()
             
-            def display(self):
+            @classmethod
+            def display(cls):
                 xon, yon = [], []
                 xoff, yoff = [], []
-                dim = len(self.ledMtx)
+                dim = len(cls.ledMtx)
                 counton, countoff = 0, 0
                 # Search for index where you have the row on
                 for y in range(dim):
-                    if self.ledMtx[y].count("[O]") == dim:
+                    if cls.ledMtx[y].count("[O]") == dim:
                         yon.append(y)
-                    elif self.ledMtx[y].count("[ ]") == dim:
+                    elif cls.ledMtx[y].count("[ ]") == dim:
                         yoff.append(y)
                     # search in cols
                     for x in range(dim):
-                        if self.ledMtx[x][y] == "[O]":
+                        if cls.ledMtx[x][y] == "[O]":
                             counton += 1
-                        elif self.ledMtx[x][y] == "[ ]":
+                        elif cls.ledMtx[x][y] == "[ ]":
                             countoff += 1
                     if counton == dim:
                         xon.append(y)
@@ -101,19 +106,17 @@ class RPiSimulator:
 
                 for row in yon:
                     for col in xon:
-                        self.energized[row][col] = "[O]"
+                        cls.energized[row][col] = "[O]"
                 for row in yoff:
                     for col in xoff:
-                        self.energized[row][col] = "[ ]"
+                        cls.energized[row][col] = "[ ]"
 
-                for row in reversed(self.energized):
+                for row in reversed(cls.energized):
                     for led in row:
                         print(f"{led}", end='')
                     print()
                 print('\n\n')
-
-        self.GPIO = GPIO(self.pos_pin, self.neg_pin)
-        
+        self.GPIO = GPIO()
 # esto se debe descomentar cuando estes en la rpi
         # for pos in range(self.dimensions):
         #     self.GPIO.output(self.pos_pin[pos], False)
@@ -133,17 +136,17 @@ class RPiSimulator:
             self.GPIO.output(self.pos_pin[pos], False)
             self.GPIO.output(self.neg_pin[pos], False)
 
-IO = RPiSimulator() #funciona perfecto
-pos1 = (1,2)
-pos2 = (3,5)
 
-for i in range(5):
-    IO.setLed(pos1, 'ON')
-    IO.setLed(pos2, 'ON')
-    sleep(1)
-    IO.setLed(pos1, 'OFF')
-    IO.setLed(pos2, 'OFF')
-    sleep(1)
 
-#descomentar
-# IO.finishLeds()
+# IO = RPiSimulator() #funciona perfecto
+# positions = [(1,2),(1,3),(1,4),(1,5),(1,6),(2,6),(3,6),(4,6)]
+
+# # analizar si se puede implementar lo de imprimir pedazos de serpiente
+# for i in range(300):
+#     for position in positions:
+#         IO.setLed(position, 'ON')
+#         sleep(0.01)
+#         IO.setLed(position, 'OFF')
+
+# #descomentar
+# # IO.finishLeds()
