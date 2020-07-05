@@ -44,14 +44,14 @@ class RPiSimulator:
         self.pos_pin = RPiSimulator.pos_pin
         self.neg_pin = RPiSimulator.neg_pin
         self.dimensions = dimensions
-        self.ledMtx = [["[ ]" for i in range(self.dimensions)] for j in range(self.dimensions)]
-        #for simulator
+        
         # this is the decoder for the rpi representation of the code
         class GPIO:
-            def __init__(self, pos_pin, neg_pin, ledMtx):
+            def __init__(self, pos_pin=list, neg_pin=list, dim=self.dimensions):
                 self.pos_pin = RPiSimulator.pos_pin
                 self.neg_pin = RPiSimulator.neg_pin
-                self.ledMtx = ledMtx
+                self.ledMtx = [["[ ]" for i in range(dim)] for j in range(dim)]
+                self.energized = [["[ ]" for i in range(dim)] for j in range(dim)]
 
             def output(self, outputNumber=int, state=bool):
                 if outputNumber in self.pos_pin: # x axis
@@ -73,21 +73,51 @@ class RPiSimulator:
                             self.ledMtx[i][currentPin] = "[O]"
                         elif state == False:
                             self.ledMtx[i][currentPin] = "[ ]"
-                
-                
-                for row in self.ledMtx:
+                self.display()
+            
+            def display(self):
+                xon, yon = [], []
+                xoff, yoff = [], []
+                dim = len(self.ledMtx)
+                counton, countoff = 0, 0
+                # Search for index where you have the row on
+                for y in range(dim):
+                    if self.ledMtx[y].count("[O]") == dim:
+                        yon.append(y)
+                    elif self.ledMtx[y].count("[ ]") == dim:
+                        yoff.append(y)
+                    # search in cols
+                    for x in range(dim):
+                        if self.ledMtx[x][y] == "[O]":
+                            counton += 1
+                        elif self.ledMtx[x][y] == "[ ]":
+                            countoff += 1
+                    if counton == dim:
+                        xon.append(y)
+                    elif countoff == dim:
+                        xoff.append(y)
+                    countoff = 0
+                    counton = 0
+
+                for row in yon:
+                    for col in xon:
+                        self.energized[row][col] = "[O]"
+                for row in yoff:
+                    for col in xoff:
+                        self.energized[row][col] = "[ ]"
+
+                for row in reversed(self.energized):
                     for led in row:
                         print(f"{led}", end='')
                     print()
                 print('\n\n')
 
-        self.GPIO = GPIO(self.pos_pin, self.neg_pin, self.ledMtx)
-
+        self.GPIO = GPIO(self.pos_pin, self.neg_pin)
+        
+# esto se debe descomentar cuando estes en la rpi
         # for pos in range(self.dimensions):
         #     self.GPIO.output(self.pos_pin[pos], False)
         #     self.GPIO.output(self.neg_pin[pos], True)
-
-        
 
     def setLed(self, coordinates=tuple, state=str):
         xpos, yneg = coordinates
@@ -103,13 +133,17 @@ class RPiSimulator:
             self.GPIO.output(self.pos_pin[pos], False)
             self.GPIO.output(self.neg_pin[pos], False)
 
-IO = RPiSimulator()
-position = (1,2)
+IO = RPiSimulator() #funciona perfecto
+pos1 = (1,2)
+pos2 = (3,5)
 
 for i in range(5):
-    IO.setLed(position, 'ON')
+    IO.setLed(pos1, 'ON')
+    IO.setLed(pos2, 'ON')
     sleep(1)
-    IO.setLed(position, 'OFF')
+    IO.setLed(pos1, 'OFF')
+    IO.setLed(pos2, 'OFF')
     sleep(1)
 
+#descomentar
 # IO.finishLeds()
