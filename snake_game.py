@@ -1,7 +1,7 @@
 from random import randint
 from time import sleep
 import keyboard # deseo eliminar esta libreria en un futuro
-from raspberrypi import PinsArray
+# from raspberrypi import PinsArray
 
 
 class Snake:
@@ -14,6 +14,8 @@ class Snake:
         self.life = True
 
     def move(self, mvDir=str, foodposition=tuple):
+        # verify current direction or last direction in memory
+        # you cant reverse the snake
         if mvDir == 'up' and self.direction != 'down':
             self.step = 0, 1
             self.direction = mvDir
@@ -26,11 +28,16 @@ class Snake:
         elif mvDir == 'right' and self.direction != 'left':
             self.step = 1, 0
             self.direction = mvDir
-
+            
+        # new mouth position
         self.mouth = self.mouth[0]+self.step[0], self.mouth[1]+self.step[1]
-        self.body.insert(0, self.mouth)
-        if not self.eat(foodposition):
-            self.body.pop()
+
+        # you have food for me?
+        if self.eat(foodposition) == False:
+            self.body.insert(0, self.mouth) # insert the mouth in the body
+            self.body.pop() # remove last part of body
+        elif self.eat(foodposition) == True:
+            self.body.insert(0, self.mouth) # just add mouth position
 
     def eat(self, foodPosition=tuple):
         if foodPosition == self.mouth:
@@ -40,9 +47,9 @@ class Snake:
 
     def stillAlive(self):
         x, y = self.mouth
-        if x < 0 or x > self.xf or y < 0 or y > self.yf:
+        if x < 0 or x > self.xf or y < 0 or y > self.yf: # is not in in board range
             self.life = False
-        for points in self.body[1:]:
+        for points in self.body[1:]: # if the mouth touch the snake body
             if self.mouth == points:
                 self.life = False
 
@@ -52,7 +59,7 @@ class Board:
         self.xlimit = xlim - 1
         self.ylimit = ylim - 1
 
-    def printPanel(self, snakebody=list, food=tuple, move='up'):  # cambiar a curses en el futuro
+    def terminalPrintPanel(self, snakebody=list, food=tuple, move='up'):  # cambiar a curses en el futuro
         p = [[' ' for i in range(self.xlimit+1)] for i in range(self.ylimit+1)]
 
         fx, fy = food
@@ -81,40 +88,22 @@ class Board:
             print()
         print('\n\n')
 
-    def getMove(self):
-        key = None
-        curses.wrapper()
-        screen = curses.initscr()  # inicia la instancia de la nueva pantalla
-        curses.noecho()  # no devolver a la pantalla el valor que fue ingresado, ya que 
-        curses.cbreak()  # romper la ejecucion solo con un caracter, sin necesitar enter
-        screen.keypad(True)
-
-        curses.halfdelay(10)
-        key = screen.getch()
-
-        curses.nocbreak()
-        screen.keypad(False)
-
-        curses.echo()
-        curses.endwin()
-
-    def endGame(self):
+    def terminalEndGame(self):
         print('\t\tthe end\t\t')
 
 
 class Food:
     def __init__(self, limits=tuple):
-        self.__limits = limits
-        self.position = None
+        self.__limits = limits # create only inside the board
+        self.position = None # coordinates
 
     def newFood(self, snakeBody=list):
-        xf, yf = self.__limits
+        xf, yf = self.__limits # limits
         self.position = (randint(0, xf), randint(0, yf))
-        while(True):
-            if self.position in snakeBody:
-                self.position = (randint(0, xf), randint(0, yf))
-            else:
-                break
+        
+        # if new food is created inside the snake
+        if self.position in snakeBody:
+                self.newFood(snakeBody) # create other (recursive)
 
 
 # object wall
@@ -142,7 +131,7 @@ del spaceToMove
 # moving snake
 while snake.life:
     # imprime la pantalla
-    screen.printPanel(snake.body, food.position, snake.direction)
+    screen.terminalPrintPanel(snake.body, food.position, snake.direction)
     userKey = ''
 
     keyboard.start_recording()
