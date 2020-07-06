@@ -19,11 +19,13 @@ print(lst.index(3))
 
 class LedPrint:
     def __init__(self, dimensions=8):
-        self.dimensions = dimensions
         from time import sleep
+        from raspberrypi import RPiSimulator
+        self.dimensions = dimensions
         self.sleep = sleep
+        self.IO = RPiSimulator()
 
-    def makeParts(self, snakemouth=tuple, snakebody=list):
+    def makeParts(self, snakemouth=tuple, snakebody=list) -> list:
         lastPoint = snakemouth
         bodyparts = [[]]
         partNumber = 0
@@ -45,18 +47,31 @@ class LedPrint:
             lastPoint = point
         return bodyparts
 
-mouth = (4,8)
+    def show(self, snakemouth=tuple, snakebody=list, food=tuple):
+
+        bodyParts = self.makeParts(snakemouth, snakebody)
+        bodyParts.append([food])
+        for part in bodyParts:
+            for point in part:
+                self.IO.setLed(point, 'ON')
+            self.sleep(0.1)
+            for point in part:
+                self.IO.setLed(point, 'OFF')
+
+
+food = (1,1)
+mouth = (4,2)
 body = [
-    (4,8),
-    (4,9),
-    (4,10),
-    (4,11),
-    (5,11),
-    (6,11),
-    (6,10),
-    (6,9),
-    (6,8),
-    (5,8)
+    (4,2),
+    (4,3),
+    (4,4),
+    (4,5),
+    (5,5),
+    (6,5),
+    (6,4),
+    (6,3),
+    (6,2),
+    (5,2)
 ]
 io = LedPrint()
-print(io.makeParts(mouth, body))
+io.show(mouth, body, food)

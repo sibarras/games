@@ -92,6 +92,46 @@ class Board:
         print('\t\tthe end\t\t')
 
 
+class LedPrint:
+    def __init__(self, dimensions=8):
+        from time import sleep
+        from raspberrypi import RPiSimulator
+        self.dimensions = dimensions
+        self.sleep = sleep
+        self.IO = RPiSimulator()
+
+    def makeParts(self, snakemouth=tuple, snakebody=list):
+        lastPoint = snakemouth
+        bodyparts = [[]]
+        partNumber = 0
+        if snakebody[1][0] == lastPoint[0]:
+            axis = 'X'
+        elif snakebody[1][1] == lastPoint[1]:
+            axis = 'Y'
+        for point in snakebody:
+            if point[0] == lastPoint[0] and axis == 'X':
+                bodyparts[partNumber].append(point)
+            elif point[1] == lastPoint[1] and axis == 'Y':
+                bodyparts[partNumber].append(point)
+            else:
+                partNumber += 1
+                bodyparts.append([])
+                bodyparts[partNumber].append(point)
+                if axis == 'Y': axis = 'X'
+                elif axis == 'X': axis = 'Y'
+            lastPoint = point
+        return bodyparts
+    
+    def show(self, snakemouth=tuple, snakebody=list, food=tuple):
+        bodyParts = self.makeParts(snakemouth, snakebody)
+        bodyParts.append([food])
+        for part in bodyParts:
+            for point in part:
+                self.IO.setLed(point, 'ON')
+            self.sleep(0.1)
+            for point in part:
+                self.IO.setLed(point, 'OFF')
+
 class Food:
     def __init__(self, limits=tuple):
         self.__limits = limits # create only inside the board
